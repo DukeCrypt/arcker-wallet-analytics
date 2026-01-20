@@ -4,6 +4,14 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import proofs from "../../proofs.json";
 
+/* ---------- FIX: declare window.ethereum for TypeScript ---------- */
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+/* ---------------------------------------------------------------- */
+
 const AIRDROP_ADDRESS = "0x54BD13f0B52E748292a9FCF09eba09C7b5a24220";
 
 const AIRDROP_ABI = [
@@ -11,7 +19,6 @@ const AIRDROP_ABI = [
   "function claimed(address) view returns (bool)"
 ];
 
-// Explicit type for proofs.json (CRITICAL FOR VERCEL)
 type ProofEntry = {
   amount: string;
   proof: string[];
@@ -25,7 +32,7 @@ export default function ClaimPage() {
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Autofill from analytics page
+  // Autofill address from analytics page
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -57,7 +64,7 @@ export default function ClaimPage() {
 
   // -------- CONNECT WALLET --------
   async function connectWallet() {
-    if (!window.ethereum) {
+    if (typeof window === "undefined" || !window.ethereum) {
       setStatus("MetaMask not detected");
       return;
     }
