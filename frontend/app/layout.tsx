@@ -1,9 +1,10 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
   title: "Arcker Wallet Analytics on ARC",
   description:
-    "Analyze ARC Testnet wallets, track activity, and claim ARCKER airdrops.",
+    "Analyze ARC Testnet wallets, track activity, and check ARCKER airdrop eligibility.",
 };
 
 export default function RootLayout({
@@ -13,10 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

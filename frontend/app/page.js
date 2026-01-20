@@ -6,6 +6,7 @@ const ARCSCAN_API = "https://testnet.arcscan.app/api";
 
 /**
  * KNOWN ARC TESTNET BRIDGE CONTRACTS
+ * (add more as needed)
  */
 const BRIDGE_CONTRACTS = [
   "0x0000000000000000000000000000000000000000",
@@ -17,6 +18,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 🔢 simple live usage counter (session-based)
+  const [walletCount, setWalletCount] = useState(0);
+
   async function fetchArcScan(params) {
     const res = await fetch(`${ARCSCAN_API}?${params}`);
     const json = await res.json();
@@ -27,6 +31,7 @@ export default function Home() {
   async function analyze() {
     if (!wallet) return;
 
+    setWalletCount(prev => prev + 1); // 👈 count real usage
     setLoading(true);
     setError("");
     setData(null);
@@ -52,7 +57,6 @@ export default function Home() {
       const days = new Set();
       const weeks = new Set();
       const months = new Set();
-
       let firstTimestamp = Date.now();
 
       [...nativeTxs, ...tokenTxs].forEach(tx => {
@@ -127,28 +131,21 @@ export default function Home() {
 
       setData({
         wallet: address,
-
         balanceNative:
           nativeTxs.length > 0
             ? Number(nativeTxs[nativeTxs.length - 1].value) / 1e18
             : 0,
-
         volumeNative: nativeVolume,
-
         nativeTxs: nativeTxs.length,
         tokenTxs: tokenTxs.length,
-
         walletAgeDays,
         uniqueDays: days.size,
         uniqueWeeks: weeks.size,
         uniqueMonths: months.size,
-
         totalContractInteractions,
         uniqueContractInteractions: uniqueContracts.size,
-
         bridgeDeposited,
         usedBridge,
-
         usdcBalance,
         tokenBalances: tokenList,
       });
@@ -160,40 +157,31 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white p-8">
-      {/* HEADER */}
+    <main className="min-h-screen bg-black text-white p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Arcker Wallet Analytics
+        {/* HEADER */}
+        <header className="mb-8">
+          <h1 className="text-4xl font-extrabold">
+            Arcker Wallet Analytics on ARC
           </h1>
           <p className="text-gray-400 mt-2">
-            Deep wallet insights on ARC Testnet
+            👥 {walletCount.toLocaleString()} wallets analyzed
           </p>
         </header>
 
         {/* INPUT */}
         <div className="flex gap-3 mb-6 max-w-3xl">
           <input
-            className="flex-1 bg-gray-900 border border-gray-700 p-3 rounded-lg"
+            className="flex-1 bg-gray-900 border border-gray-700 p-3 rounded"
             placeholder="Paste wallet address"
             value={wallet}
             onChange={e => setWallet(e.target.value)}
           />
           <button
             onClick={analyze}
-            className="bg-blue-600 hover:bg-blue-700 px-6 rounded-lg font-semibold"
+            className="bg-blue-600 px-6 rounded font-semibold"
           >
             Analyze
-          </button>
-          <button
-            onClick={() => {
-              if (!wallet) return;
-              window.location.href = `/claim?address=${wallet}`;
-            }}
-            className="bg-green-600 hover:bg-green-700 px-6 rounded-lg font-semibold"
-          >
-            Claim ARCKER
           </button>
         </div>
 
@@ -227,22 +215,6 @@ export default function Home() {
               label="Native Bridge Used"
               value={data.usedBridge ? "YES" : "NO"}
             />
-
-            <div className="col-span-2">
-              <h2 className="font-semibold mt-4 mb-2">
-                Token Balances
-              </h2>
-              {data.tokenBalances.length === 0 && (
-                <p className="text-gray-400">No tokens</p>
-              )}
-              {data.tokenBalances.map(t => (
-                <Stat
-                  key={t.symbol}
-                  label={t.symbol}
-                  value={t.balance}
-                />
-              ))}
-            </div>
           </div>
         )}
 
@@ -255,7 +227,7 @@ export default function Home() {
             rel="noreferrer"
             className="underline hover:text-gray-300"
           >
-            @brodarev
+            @BrodaRev
           </a>
         </footer>
       </div>
@@ -265,7 +237,7 @@ export default function Home() {
 
 function Stat({ label, value }) {
   return (
-    <div className="bg-gray-900/80 border border-gray-800 p-4 rounded-lg">
+    <div className="bg-gray-900 border border-gray-800 p-4 rounded">
       <p className="text-gray-400 text-sm">{label}</p>
       <p className="text-lg font-bold">
         {typeof value === "number"
