@@ -11,22 +11,29 @@ const AIRDROP_ABI = [
   "function claimed(address) view returns (bool)"
 ];
 
+// Explicit type for proofs.json (CRITICAL FOR VERCEL)
+type ProofEntry = {
+  amount: string;
+  proof: string[];
+};
+
 export default function ClaimPage() {
   const [inputAddress, setInputAddress] = useState("");
-  const [eligible, setEligible] = useState(null);
-  const [account, setAccount] = useState(null);
+  const [eligible, setEligible] = useState<ProofEntry | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [txHash, setTxHash] = useState(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Autofill address from analytics page
+  // Autofill from analytics page
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const addr = params.get("address");
     if (addr) setInputAddress(addr);
   }, []);
 
-  // ---- CHECK ELIGIBILITY (NO WALLET) ----
+  // -------- CHECK ELIGIBILITY (NO WALLET) --------
   function checkEligibility() {
     const addr = inputAddress.trim().toLowerCase();
     setTxHash(null);
@@ -37,7 +44,7 @@ export default function ClaimPage() {
       return;
     }
 
-    const entry = proofs[addr];
+    const entry = (proofs as Record<string, ProofEntry>)[addr];
 
     if (!entry) {
       setStatus("❌ Address is not eligible");
@@ -48,7 +55,7 @@ export default function ClaimPage() {
     }
   }
 
-  // ---- CONNECT WALLET ----
+  // -------- CONNECT WALLET --------
   async function connectWallet() {
     if (!window.ethereum) {
       setStatus("MetaMask not detected");
@@ -60,13 +67,13 @@ export default function ClaimPage() {
     setAccount(accounts[0].toLowerCase());
   }
 
-  // ---- CLAIM ----
+  // -------- CLAIM TOKENS --------
   async function claimTokens() {
     if (!eligible) return;
 
     try {
       setLoading(true);
-      setStatus("Claiming…");
+      setStatus("Claiming...");
       setTxHash(null);
 
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -108,7 +115,6 @@ export default function ClaimPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white p-8">
       <div className="max-w-xl mx-auto">
-        {/* HEADER */}
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-extrabold">
             Claim ARCKER
@@ -118,7 +124,6 @@ export default function ClaimPage() {
           </p>
         </header>
 
-        {/* INPUT */}
         <input
           className="w-full p-4 mb-3 bg-gray-900 border border-gray-700 rounded-lg"
           placeholder="Paste wallet address"
@@ -133,12 +138,10 @@ export default function ClaimPage() {
           Check Eligibility
         </button>
 
-        {/* STATUS */}
         {status && (
           <p className="text-center mb-4">{status}</p>
         )}
 
-        {/* TX LINK */}
         {txHash && (
           <a
             href={`https://testnet.arcscan.app/tx/${txHash}`}
@@ -150,7 +153,6 @@ export default function ClaimPage() {
           </a>
         )}
 
-        {/* CONNECT / CLAIM */}
         {eligible && (
           <>
             {!account ? (
@@ -170,13 +172,12 @@ export default function ClaimPage() {
                     : "bg-green-600 hover:bg-green-700"
                 }`}
               >
-                {loading ? "Claiming…" : "Claim 10,000 ARCKER"}
+                {loading ? "Claiming..." : "Claim 10,000 ARCKER"}
               </button>
             )}
           </>
         )}
 
-        {/* FOOTER */}
         <footer className="mt-16 text-center text-gray-500 text-sm">
           Built by{" "}
           <a
