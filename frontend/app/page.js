@@ -6,7 +6,7 @@ const ARCSCAN_API = "https://testnet.arcscan.app/api";
 
 /**
  * KNOWN ARC TESTNET BRIDGE CONTRACTS
- * (add more as needed)
+ * (extend later if needed)
  */
 const BRIDGE_CONTRACTS = [
   "0x0000000000000000000000000000000000000000",
@@ -18,7 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔢 simple live usage counter (session-based)
+  // Session-based usage counter (NO backend)
   const [walletCount, setWalletCount] = useState(0);
 
   async function fetchArcScan(params) {
@@ -31,7 +31,9 @@ export default function Home() {
   async function analyze() {
     if (!wallet) return;
 
-    setWalletCount(prev => prev + 1); // 👈 count real usage
+    // Count real usage (session only)
+    setWalletCount(prev => prev + 1);
+
     setLoading(true);
     setError("");
     setData(null);
@@ -165,11 +167,11 @@ export default function Home() {
             Arcker Wallet Analytics on ARC
           </h1>
           <p className="text-gray-400 mt-2">
-            👥 {walletCount.toLocaleString()} wallets analyzed
+            👥 {walletCount.toLocaleString()} wallets analyzed (this session)
           </p>
         </header>
 
-        {/* INPUT */}
+        {/* INPUT + ACTIONS */}
         <div className="flex gap-3 mb-6 max-w-3xl">
           <input
             className="flex-1 bg-gray-900 border border-gray-700 p-3 rounded"
@@ -177,11 +179,22 @@ export default function Home() {
             value={wallet}
             onChange={e => setWallet(e.target.value)}
           />
+
           <button
             onClick={analyze}
             className="bg-blue-600 px-6 rounded font-semibold"
           >
             Analyze
+          </button>
+
+          <button
+            onClick={() => {
+              if (!wallet) return;
+              window.location.href = `/claim?address=${wallet}`;
+            }}
+            className="bg-green-600 px-6 rounded font-semibold"
+          >
+            Claim ARCKER
           </button>
         </div>
 
